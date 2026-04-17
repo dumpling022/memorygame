@@ -1,0 +1,172 @@
+/* 全局重置：确保全屏无滚动条溢出，卡片区域完整展示 */
+* {
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+}
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;  /* 防止整体页面滚动，所有内容都在视口内 */
+}
+
+body {
+    background: url('../assets/images/background.svg') no-repeat center center fixed;
+    background-size: cover;
+    image-rendering: crisp-edges; /* 优化SVG渲染清晰度 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 游戏盘面网格布局 - 卡片宽度自适应且完整展示，不滚动 */
+.board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(70px, 90px)); /* 固定宽度范围，确保卡片大小适中 */
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+/* 卡片3D核心样式 */
+.card {
+    aspect-ratio: 3 / 4;
+    width: 100%;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+    border-radius: 16px;
+    box-shadow: 0 12px 18px -8px rgba(0, 0, 0, 0.4);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+/* 背面花纹 */
+.card-back {
+    background: repeating-linear-gradient(45deg, #2b2d42, #2b2d42 12px, #1e1f2c 12px, #1e1f2c 24px);
+    border: 1px solid #ffffff; 
+    transform: rotateY(0deg);
+    box-shadow: inset 0 0 0 1px #ffffff;
+}
+.card-back::after {
+    content: "?";
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ffd966;
+    text-shadow: 2px 2px 0 #b45309;
+    opacity: 0.9;
+}
+
+/* 正面水果图案 */
+.card-front {
+    background: linear-gradient(145deg, #fff9e8, #ffefcf);
+    transform: rotateY(180deg);
+    border: 1px solid #ffffff;
+    color: #c2410c;
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+    box-shadow: inset 0 0 0 1px #ffffff, 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* 翻转状态 */
+.card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+/* 配对成功 → 透明消除 (完全不可见但占位，保留网格) */
+.card.eliminated {
+    cursor: default;
+    pointer-events: none;
+}
+.card.eliminated .card-inner {
+    opacity: 0;
+    transform: rotateY(0deg);
+    transition: opacity 0.25s ease;
+    box-shadow: none;
+}
+.card.eliminated .card-front,
+.card.eliminated .card-back {
+    display: none;
+}
+
+/* 排行榜滚动条 */
+.rank-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+.rank-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.rank-scroll::-webkit-scrollbar-thumb {
+    background: #f59e0b;
+    border-radius: 10px;
+}
+
+/* 响应式: 小屏幕进一步缩小卡片和间隙 */
+@media (max-width: 550px) {
+    .board {
+        gap: 8px;
+        grid-template-columns: repeat(4, minmax(60px, 75px));
+    }
+    .card-front, .card-back {
+        font-size: 1.6rem;
+    }
+    .card-back::after {
+        font-size: 2rem;
+    }
+}
+@media (max-width: 420px) {
+    .board {
+        gap: 6px;
+        grid-template-columns: repeat(4, minmax(55px, 68px));
+    }
+    .card-front, .card-back {
+        font-size: 1.4rem;
+    }
+    .card-back::after {
+        font-size: 1.6rem;
+    }
+}
+
+/* 确保游戏界面内部紧凑，卡片区域不滚动且完整显示 */
+.game-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    backdrop-filter: blur(10px);    /*毛玻璃效果*/
+}
+.card-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;  /* flex限制溢出 */
+    padding: 8px 0;
+}
+
+/* 音量滑条：更清晰的可用性 */
+.volume-range {
+    accent-color: #4f46e5; /* indigo-600 */
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>水果记忆翻翻乐</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./css/game.css">
+</head>
+<body>
+
+    <!-- ======================= 三个主界面（全屏自适应） ======================= -->
+    <!-- 1. 首页 -->
+    <div id="homePanel" class="absolute inset-0 transition-all duration-300 flex items-center justify-center p-4">
+        <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl p-8 text-center border border-amber-200 w-full max-w-2xl mx-auto">
+            <div class="mb-6">
+                <span class="text-8xl drop-shadow-lg">🍎🍌🍒</span>
+            </div>
+            <h1 class="text-5xl font-extrabold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-6">水果记忆翻翻乐</h1>
+            <div class="space-y-5 mt-8">
+                <button id="startGameBtn" class="w-full py-4 text-2xl font-bold rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg transition transform hover:scale-105 active:scale-95">
+                    🎮 开始游戏
+                </button>
+                <button id="viewRankBtn" class="w-full py-4 text-2xl font-bold rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg transition transform hover:scale-105 active:scale-95">
+                    🏆 查看排行榜
+                </button>
+                <button id="bgmSettingsBtn" class="w-full py-3 text-lg font-bold rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white shadow-lg transition transform hover:scale-105 active:scale-95">
+                    🎵 BGM 音量
+                </button>
+            </div>
+            <p class="text-sm text-stone-600 mt-8">⚡ 配对相同水果 | 40秒限时挑战 </p>
+        </div>
+    </div>
+
+    <!-- 2. 游戏界面（全屏flex列，卡片区域完整展示无滚动） -->
+    <div id="gamePanel" class="hidden absolute inset-0 flex flex-col p-4">
+        <div class="bg-amber-50/20 backdrop-blur-sm rounded-3xl shadow-2xl border border-amber-300/50 game-inner">
+            <!-- 顶部栏：固定不滚动 -->
+            <div class="flex flex-wrap items-center justify-between gap-3 p-5 md:p-6 pb-2">
+                <button id="backHomeFromGame" class="bg-stone-700 hover:bg-stone-800 text-white px-5 py-2 rounded-full font-bold shadow-md transition flex items-center gap-2 text-sm md:text-base">
+                    ← 返回首页
+                </button>
+                <div class="flex gap-4 bg-stone-800/80 rounded-full px-5 py-2 text-white shadow-inner">
+                    <div class="flex items-center gap-2"><span class="text-xl">🎯</span><span id="scoreDisplay" class="font-mono text-2xl font-bold text-amber-300">0</span><span>分</span></div>
+                    <div class="flex items-center gap-2"><span class="text-xl">⏱️</span><span id="timerDisplay" class="font-mono text-2xl font-bold text-amber-300">40</span><span>秒</span></div>
+                </div>
+            </div>
+            <!-- 卡片区域：完整展示3x4网格，无滚动条 -->
+            <div class="card-area">
+                <div class="board" id="gameBoard"></div>
+            </div>
+            <!-- 底部按钮固定 -->
+            <div class="flex justify-center p-5 pt-2">
+                <button id="restartGameBtn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-8 rounded-full shadow-md transition flex items-center gap-2 text-lg">
+                    🔄 新的一局
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 排行榜界面 -->
+    <div id="leaderboardPanel" class="hidden absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-6 border border-amber-200 w-full max-w-2xl mx-auto max-h-[85vh] flex flex-col">
+            <div class="text-center mb-4">
+                <span class="text-5xl">🏆</span>
+                <h2 class="text-3xl font-extrabold text-stone-800 mt-2">历史最高分排行榜</h2>
+            </div>
+            <div class="rank-scroll overflow-y-auto flex-1 bg-amber-50/50 rounded-2xl p-3 my-2">
+                <div id="rankListContainer" class="space-y-2">
+                    <div class="text-center text-stone-500 py-8">加载中...</div>
+                </div>
+            </div>
+            <button id="backHomeFromRank" class="w-full mt-4 bg-stone-700 hover:bg-stone-800 text-white font-bold py-3 rounded-xl shadow transition flex items-center justify-center gap-2 text-lg">
+                🏠 返回首页
+            </button>
+        </div>
+    </div>
+
+    <!-- 游戏结束模态框 -->
+    <div id="gameEndModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-all">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 text-center transform transition-all">
+            <div class="text-5xl mb-3">⏰</div>
+            <p id="endMessage" class="text-xl font-bold text-stone-800 mb-6">游戏结束！ 最终得分: 0 分 🎉</p>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button id="endReturnHomeBtn" class="bg-stone-600 hover:bg-stone-700 text-white font-bold py-2 px-6 rounded-full transition">🏠 返回首页</button>
+                <button id="endPlayAgainBtn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-full transition">🎮 再来一局</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3-2-1 倒数模态框 -->
+    <div id="countdownModal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="bg-white/90 rounded-full w-40 h-40 flex items-center justify-center shadow-2xl">
+            <span id="countdownNumber" class="text-7xl font-black text-amber-600">3</span>
+        </div>
+    </div>
+
+    <!-- BGM 音量弹窗 -->
+    <div id="bgmSettingsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="text-xl font-extrabold text-stone-800">🎵 BGM 音量</h3>
+                <button id="bgmSettingsCloseBtn" class="bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold px-3 py-1 rounded-lg transition">✕</button>
+            </div>
+            <div class="mt-5">
+                <div class="flex items-center justify-between text-sm text-stone-600 mb-2">
+                    <span>静音</span>
+                    <span id="bgmVolumeValue">50%</span>
+                </div>
+                <input id="bgmVolumeRange" class="w-full volume-range" type="range" min="0" max="100" step="1" value="50" />
+                <p class="text-xs text-stone-500 mt-3">提示：如果浏览器限制自动播放或设备不支持音频，将自动忽略，不影响游戏。</p>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button id="bgmSettingsOkBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-full transition">完成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 背景音乐元素 (默认隐藏，循环播放) -->
+    <audio id="bgmAudio" src="./assets/audio/bgm.mp3" loop preload="auto" class="hidden"></audio>
+
+    <script src="./js/game.js" defer></script>
+</body>
+</html>
